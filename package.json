@@ -2,7 +2,7 @@
     "name": "@herbertusz/utility",
     "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
@@ -17,7 +17,8 @@
     "exports": {
         ".": {
             "require": "./dist/utility.cjs",
-            "import": "./dist/utility.mjs"
+            "import": "./dist/utility.mjs",
+            "types": "./dist/types/utility.d.ts"
         }
     },
     "scripts": {
