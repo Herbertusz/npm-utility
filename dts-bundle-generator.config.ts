@@ -2,14 +2,14 @@
 const packageJson = require('./package.json');
 
 const getPackageName = () => {
-    return packageJson.name;
+    return packageJson.name.replace(/^@[^/]+\//g, '');
 };
 
 const config = {
     entries: [
         {
             filePath: './src/index.ts',
-            outFile: `./dist/${getPackageName()}.d.ts`,
+            outFile: `./dist/types/${getPackageName()}.d.ts`,
             noCheck: false,
         },
     ],

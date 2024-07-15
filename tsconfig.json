@@ -17,6 +17,7 @@
         "forceConsistentCasingInFileNames": true,
         "noEmitOnError": true,
 		"declaration": true,
+        "declarationDir": "./dist/types",
 		"outDir": "dist",
         "types": ["vite/client", "node"]
     },
