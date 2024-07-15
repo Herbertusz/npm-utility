@@ -1,0 +1,51 @@
+{
+    "name": "utility",
+    "author": "Horváth Norbert (https://github.com/Herbertusz)",
+    "version": "0.1.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Herbertusz/npm-utility.git"
+    },
+    "type": "module",
+    "main": "./dist/utility.cjs",
+    "module": "./dist/utility.mjs",
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "require": "./dist/utility.cjs",
+            "import": "./dist/utility.mjs"
+        }
+    },
+    "types": "./dist/utility.d.ts",
+    "scripts": {
+        "dev": "vite --host",
+        "build": "rimraf dist && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts",
+        "clean": "npm run build",
+        "test": "vitest",
+        "test:coverage": "vitest --coverage",
+        "lint": "eslint . --ext .ts",
+        "format": "eslint . --ext .ts --fix"
+    },
+    "devDependencies": {
+        "@types/jsdom": "^21.1.1",
+        "@types/lodash": "^4.14.199",
+        "@types/node": "^20.4.9",
+        "@typescript-eslint/eslint-plugin": "^6.3.0",
+        "@typescript-eslint/parser": "^6.3.0",
+        "@vitest/coverage-v8": "^0.34.1",
+        "dts-bundle-generator": "^8.0.1",
+        "eslint": "^8.46.0",
+        "happy-dom": "^14.11.1",
+        "lint-staged": "^13.2.3",
+        "rimraf": "^5.0.1",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.2.2",
+        "vite": "^4.4.9",
+        "vitest": "^0.34.1"
+    },
+    "dependencies": {
+        "lodash": "^4.17.21"
+    }
+}
