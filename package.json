@@ -2,7 +2,7 @@
     "name": "@herbertusz/utility",
     "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
@@ -19,7 +19,7 @@
             "import": "./dist/utility.mjs"
         }
     },
-    "types": "./dist/utility.d.ts",
+    "types": "./dist/@herbertusz/utility.d.ts",
     "scripts": {
         "dev": "vite --host",
         "build": "rimraf dist && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts",
