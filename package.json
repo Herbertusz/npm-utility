@@ -2,7 +2,7 @@
     "name": "@herbertusz/utility",
     "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
@@ -12,7 +12,7 @@
     "module": "./dist/utility.mjs",
     "types": "./dist/types/utility.d.ts",
     "files": [
-        "dist"
+        "dist", "src"
     ],
     "exports": {
         ".": {
@@ -27,7 +27,8 @@
         "test": "vitest",
         "test:coverage": "vitest --coverage",
         "lint": "eslint . --ext .ts",
-        "format": "eslint . --ext .ts --fix"
+        "format": "eslint . --ext .ts --fix",
+        "prepare": "npm run clean && npm run build"
     },
     "devDependencies": {
         "@types/jsdom": "^21.1.1",
