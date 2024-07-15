@@ -1,5 +1,6 @@
 {
-    "name": "utility",
+    "name": "@herbertusz/utility",
+    "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
     "version": "0.1.0",
     "repository": {

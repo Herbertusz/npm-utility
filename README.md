@@ -1,4 +1,4 @@
-# npm-utility
+# utility
 Various utilities
 
 Installing:
