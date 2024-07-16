@@ -1,7 +1,8 @@
 {
-    "name": "utility",
+    "name": "@herbertusz/utility",
+    "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.0",
+    "version": "0.1.6",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
@@ -9,16 +10,17 @@
     "type": "module",
     "main": "./dist/utility.cjs",
     "module": "./dist/utility.mjs",
+    "types": "./dist/types/utility.d.ts",
     "files": [
-        "dist"
+        "dist", "src"
     ],
     "exports": {
         ".": {
             "require": "./dist/utility.cjs",
-            "import": "./dist/utility.mjs"
+            "import": "./dist/utility.mjs",
+            "types": "./dist/types/utility.d.ts"
         }
     },
-    "types": "./dist/utility.d.ts",
     "scripts": {
         "dev": "vite --host",
         "build": "rimraf dist && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts",
@@ -26,7 +28,8 @@
         "test": "vitest",
         "test:coverage": "vitest --coverage",
         "lint": "eslint . --ext .ts",
-        "format": "eslint . --ext .ts --fix"
+        "format": "eslint . --ext .ts --fix",
+        "prepare": "npm run clean && npm run build"
     },
     "devDependencies": {
         "@types/jsdom": "^21.1.1",
