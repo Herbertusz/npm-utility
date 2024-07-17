@@ -4,8 +4,9 @@ name: Utility CI
 
 on:
   push:
+    branches:
+      - master
   pull_request:
-  if: github.ref == 'refs/heads/master'
 
 jobs:
   build:
