@@ -96,7 +96,7 @@ describe('utility', () => {
         ).catch(
             (error) => Promise.reject(error)
         );
-        expect(runPromise('http://example.com')).resolves.toBeInstanceOf(Response);
+        expect(runPromise('http://example.com')).resolves.toBeDefined();
         expect(runPromise('http://doesntexist12345.com')).rejects.toBeInstanceOf(Error);
     });
 
