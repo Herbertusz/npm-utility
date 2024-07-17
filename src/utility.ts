@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual, isFunction, isString, pick, uniqBy } from 'lodash';
+import { cloneDeep, isEqual, isFunction, isString, pick, times, uniqBy } from 'lodash';
 
 /**
  * Switch szerkezet funkcionális megfelelője (elsősorban értékadáshoz)
@@ -124,44 +124,7 @@ export const delay = function<T>(timeout: number, resolvedValue: T = null!): Pro
 };
 
 /**
- * Promise-ok szekvenciális lefuttatása
- * @param {array} factories - promise factory-k tömbje
- * @return {Promise} visszatérési értékek tömbje
- * @exampe
- *  promiseSequence([
- *      ()     => { return delay(1000, 1); },
- *      (prev) => { console.info(prev); return delay(1000, 2); },
- *      (prev) => { console.info(prev); return delay(1000, 3); }
- *  ]).then(
- *      (values) => {
- *          console.info('Done', values);
- *      }
- *  );
- */
-// export const promiseSequence = function<T>(factories: ((previousValue: T) => Promise<T>)[]): Promise<T[]> {
-//     let result = Promise.resolve(null as T);
-//     const values: T[] = [];
-//     factories.forEach(
-//         (factory) => {
-//             result = result.then(
-//                 (currentValue: T) => {
-//                     values.push(currentValue);
-//                     return factory(currentValue);
-//                 }
-//             ) as Promise<Awaited<T>>;
-//         }
-//     );
-//     return result.then(
-//         (currentValue: T) => {
-//             values.shift();
-//             values.push(currentValue);
-//             return values;
-//         }
-//     );
-// };
-
-/**
- * Promise-ok szekvnciális végrehajtása
+ * Promise-ok szekvenciális végrehajtása (Promise.all mintájára)
  * @param promiseFactories - promise-t visszaadó függvények tömbje
  * @return {Promise}
  * @example
@@ -170,7 +133,7 @@ export const delay = function<T>(timeout: number, resolvedValue: T = null!): Pro
  *      (value) => delay(2000, value).then((val) => val + 1),
  *      (value) => delay(1000, value).then((val) => val + 1)
  *  ]).then(
- *      (value) => console.log(value)
+ *      (value) => console.info(value)
  *  ).catch(
  *      (error) => console.warn(error)
  *  );
@@ -369,6 +332,79 @@ export const ratioRange = function(
     number: number, fromRange: [number, number], toRange: [number, number]
 ): number {
     return (number - fromRange[0]) * (toRange[1] - toRange[0]) / (fromRange[1] - fromRange[0]) + toRange[0];
+};
+
+/**
+ * Számokkal definiált intervallumok merge-elése
+ * @param {array} intervals - Intervallumok
+ * @return {array}
+ * @example
+ *  mergeIntervals([[6, 8], [1, 7], [2, 4], [9, 10]]) => [[1, 8], [9, 10]]
+ */
+export const unionIntervals = function(intervals: [number, number][]): [number, number][] {
+    const stack: [number, number][] = [];
+
+    intervals.sort(
+        (a, b) => sortDescriptor(a[0], b[0])
+    );
+
+    intervals.forEach(
+        (interval, i) => {
+            if (i === 0) {
+                stack.push(interval);
+            }
+            else {
+                const top = stack[stack.length - 1];
+                if (top[1] < interval[0]) {
+                    // ha a jelenlegi intervallum nincs átfedésben a stack tetején lévővel
+                    stack.push(interval);
+                }
+                else if (top[1] < interval[1]) {
+                    // ha átfedésben van és a jelenlegi később végződik, akkor módosítsuk a legfelső végét
+                    top[1] = interval[1];
+                    stack.pop();
+                    stack.push(top);
+                }
+            }
+        }
+    );
+
+    return stack;
+};
+
+/**
+ * Intervallumok komplementere egy adott intervallumon (domain) belül
+ * @param {array} domain - Főintervallum
+ * @param {array} intervals - Intervallumok
+ * @return {array}
+ * @example
+ *  complementIntervals([1, 10], [[3, 5], [6, 8]]) => [[1, 3], [5, 6], [8, 10]]
+ */
+export const complementIntervals = function(
+    domain: [number, number], intervals: [number, number][]
+): [number, number][] {
+    const complements: [number, number][] = [];
+    const mergedIntervals = unionIntervals(intervals);
+
+    times(mergedIntervals.length + 1).forEach(
+        (i) => {
+            let toBePushed: [number, number];
+            if (i === 0) {
+                toBePushed = [domain[0], mergedIntervals[i]?.[0] ?? domain[1]];
+            }
+            else if (i === mergedIntervals.length) {
+                toBePushed = [mergedIntervals[i - 1][1], domain[1]];
+            }
+            else {
+                toBePushed = [mergedIntervals[i - 1][1], mergedIntervals[i][0]];
+            }
+            if (toBePushed[0] < toBePushed[1]) {
+                complements.push(toBePushed);
+            }
+        }
+    );
+
+    return complements;
 };
 
 /**
@@ -838,7 +874,7 @@ export const generateString = function(length: number): string {
  *      error => {
  *          console.error(error);
  *      }
- *  )
+ *  );
  */
 export const animate = function(speed: number, operation: (count: number) => boolean): Promise<number> {
     let start: number | null = null;

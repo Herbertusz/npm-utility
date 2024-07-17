@@ -5,7 +5,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
     switching, condition, delay, promiseSequence, tryRequest, macrotask, toggleArray, sortDescriptor, arrayToMap,
-    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString
+    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString,
+    unionIntervals, animate, complementIntervals
 } from '../src/utility';
 
 describe('utility', () => {
@@ -127,6 +128,28 @@ describe('utility', () => {
         expect(desc).toEqual([8, 7, 3, 2, 1]);
     });
 
+    it('mergeIntervals', () => {
+        expect(unionIntervals([])).toEqual([]);
+        expect(unionIntervals([[1, 6]])).toEqual([[1, 6]]);
+        expect(unionIntervals([[2, 2], [4, 4]])).toEqual([[2, 2], [4, 4]]);
+        expect(unionIntervals([[1, 6], [8, 9]])).toEqual([[1, 6], [8, 9]]);
+        expect(unionIntervals([[1, 8], [2, 3]])).toEqual([[1, 8]]);
+        expect(unionIntervals([[1, 5], [4, 8]])).toEqual([[1, 8]]);
+        expect(unionIntervals([[6, 8], [1, 7], [2, 4], [9, 10]])).toEqual([[1, 8], [9, 10]]);
+    });
+    
+    it('complementIntervals', () => {
+        expect(complementIntervals([1, 10], [])).toEqual([[1, 10]]);
+        expect(complementIntervals([1, 10], [[1, 10]])).toEqual([]);
+        expect(complementIntervals([1, 10], [[1, 6]])).toEqual([[6, 10]]);
+        expect(complementIntervals([1, 10], [[6, 10]])).toEqual([[1, 6]]);
+        expect(complementIntervals([1, 10], [[3, 5]])).toEqual([[1, 3], [5, 10]]);
+        expect(complementIntervals([1, 10], [[3, 5], [6, 8]])).toEqual([[1, 3], [5, 6], [8, 10]]);
+        expect(complementIntervals([1, 10], [[2, 7], [3, 5]])).toEqual([[1, 2], [7, 10]]);
+        expect(complementIntervals([1, 10], [[2, 5], [4, 7]])).toEqual([[1, 2], [7, 10]]);
+        expect(complementIntervals([1, 10], [[1, 5], [8, 10]])).toEqual([[5, 8]]);
+    });
+    
     it('ratioRange', () => {
         expect(ratioRange(6, [3, 9], [0, 100])).toEqual(50);
         expect(ratioRange(12, [10, 20], [1, 2])).toEqual(1.2);
@@ -378,6 +401,24 @@ describe('utility', () => {
     it('generateString', () => {
         expect(generateString(0)).toEqual('');
         expect(generateString(10).length).toEqual(10);
+    });
+    
+    it.skip('animate', () => {
+        const div = document.createElement('div');
+        div.style.position = 'absolute';
+        div.style.left = '0px';
+        animate(200, current => {
+            div.style.left = `${current}px`;
+            return current < 500;
+        }).then(
+            current => {
+                console.info(current);
+            }
+        ).catch(
+            error => {
+                console.error(error);
+            }
+        );
     });
 
 });
