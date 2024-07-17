@@ -1,6 +1,8 @@
 # .github/workflows/node.js.yml
 name: Utility CI
 
+if: github.ref == 'refs/heads/master'
+
 on:
   push:
   pull_request:
