@@ -1,8 +1,11 @@
 # .github/workflows/node.js.yml
 name: Utility CI
 
+
 on:
   push:
+    branches:
+      - master
   pull_request:
 
 jobs:
