@@ -1,7 +1,6 @@
 # .github/workflows/node.js.yml
 name: Utility CI
 
-
 on:
   push:
     branches:

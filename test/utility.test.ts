@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
     switching, condition, delay, promiseSequence, tryRequest, macrotask, toggleArray, sortDescriptor, arrayToMap,
     ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString,
-    unionIntervals, animate, complementIntervals
+    unionIntervals, animate, complementIntervals, objectKeys, includesAll, removeAt, objectEntries
 } from '../src/utility';
 
 describe('utility', () => {
@@ -402,7 +402,31 @@ describe('utility', () => {
         expect(generateString(0)).toEqual('');
         expect(generateString(10).length).toEqual(10);
     });
+
+    it('objectKeys', () => {
+        expect(objectKeys({ })).toEqual([]);
+        expect(objectKeys({ a: 1, b: 2, c: '' })).toEqual(['a', 'b', 'c']);
+    });
     
+    it('objectEntries', () => {
+        expect(objectEntries({ })).toEqual([]);
+        expect(objectEntries({ a: 1, b: 2, c: '' })).toEqual([['a', 1], ['b', 2], ['c', '']]);
+    });
+
+    it('includesAll', () => {
+        expect(includesAll([], [])).toEqual(true);
+        expect(includesAll([1, 2], [1])).toEqual(true);
+        expect(includesAll([1, 2], [3])).toEqual(false);
+        expect(includesAll([1, 2, 3], [1, 2])).toEqual(true);
+        expect(includesAll([1, 2, 3], [3, 4])).toEqual(false);
+    });
+
+    it('removeAt', () => {
+        expect(removeAt([], 0)).toEqual([]);
+        expect(removeAt([1, 2, 3], 1)).toEqual([1, 3]);
+        expect(removeAt([1, 2, 3], 3)).toEqual([1, 2, 3]);
+    });
+
     it.skip('animate', () => {
         const div = document.createElement('div');
         div.style.position = 'absolute';

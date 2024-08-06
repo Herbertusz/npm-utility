@@ -9,7 +9,7 @@ const parse = function(data: string | null): unknown {
         return JSON.parse(data as string);
     }
     catch (error) {
-        return  null;
+        return null;
     }
 };
 
