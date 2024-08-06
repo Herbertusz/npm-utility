@@ -15,5 +15,12 @@ export {
     IMG,
     FILE,
     generateString,
+    SortDirection,
+    complementIntervals,
+    includesAll,
+    objectEntries,
+    objectKeys,
+    removeAt,
+    unionIntervals,
     animate
 } from './utility';
