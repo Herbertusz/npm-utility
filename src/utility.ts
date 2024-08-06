@@ -858,6 +858,50 @@ export const generateString = function(length: number): string {
 };
 
 /**
+ * Típusos Object.keys()
+ * @param obj
+ * @return
+ */
+export const objectKeys = function<T extends object>(obj: T): (keyof T)[] {
+    return Object.keys(obj) as (keyof T)[];
+};
+
+/**
+ * Típusos Object.entries()
+ * @param obj
+ * @return
+ */
+export const objectEntries = function<K extends string | number | symbol, V>(
+    obj: Record<K, V>
+): [K, V][] {
+    return Object.entries<V>(obj) as [K, V][];
+};
+
+/**
+ * A haystack tömb tartalmazza-e a needle összes elemét
+ * @param {array} haystack
+ * @param {array} needle
+ * @return
+ */
+export const includesAll = function<T>(haystack: T[], needle: T[]): boolean {
+    return needle.every(
+        item => haystack.includes(item)
+    );
+};
+
+/**
+ * Array.propotype.splice törlési funkciójának immutable változata
+ * @param {array} array - tömb
+ * @param {number} index - törlendő elem indexe
+ * @return tömb az elem nélkül
+ */
+export const removeAt = function<T>(array: T[], index: number): T[] {
+    const copied = [...array];
+    copied.splice(index, 1);
+    return copied;
+};
+
+/**
  * Animáció futtatása
  * @param {number} speed - animáció sebessége (px/sec)
  * @param {function} operation - animáció minden lépésében lefutó függvény, ha false a visszatérési értéke, az animáció leáll
