@@ -96,7 +96,7 @@ describe('utility', () => {
         ).catch(
             (error) => Promise.reject(error)
         );
-        expect(runPromise('http://example.com')).resolves.toBeDefined();
+        expect(runPromise('https://google.com')).resolves.toBeDefined();
         expect(runPromise('http://doesntexist12345.com')).rejects.toBeInstanceOf(Error);
     });
 
@@ -268,6 +268,17 @@ describe('utility', () => {
             expect(ArrayOfObjects.find(source3, 'name', 'b')).toEqual({ num: 4, name: 'b', age: 23 });
         });
         
+        it('findAll', () => {
+            expect(ArrayOfObjects.findAll(source3, 'age', 100)).toEqual([]);
+            expect(ArrayOfObjects.findAll(source3, 'age', 21)).toEqual([
+                { num: 2, name: 'b', age: 21 }
+            ]);
+            expect(ArrayOfObjects.findAll(source3, 'name', 'b')).toEqual([
+                { num: 4, name: 'b', age: 23 },
+                { num: 2, name: 'b', age: 21 },
+            ]);
+        });
+        
         it('unique', () => {
             expect(ArrayOfObjects.unique(source0, 'name')).toEqual([]);
             expect(ArrayOfObjects.unique(source1, 'name')).toEqual([
@@ -318,8 +329,40 @@ describe('utility', () => {
 
         it('duplicatedElements', () => {
             expect(ArrayOfObjects.duplicatedElements(source0, 'name')).toEqual([]);
-            expect(ArrayOfObjects.duplicatedElements(source1, 'age')).toEqual([]);
-            expect(ArrayOfObjects.duplicatedElements(source1, 'name')).toEqual(['b']);
+            expect(ArrayOfObjects.duplicatedElements(source1, 'name')).toEqual([
+                { id: 2, name: 'b', age: 21 },
+                { id: 4, name: 'b', age: 23 },
+            ]);
+            expect(ArrayOfObjects.duplicatedElements([
+                { id: 1, name: 'a' },
+                { id: 1, name: 'b' },
+                { id: 1, name: 'a' },
+                { id: 3, name: 'a' },
+            ], 'name')).toEqual([
+                { id: 1, name: 'a' },
+                { id: 1, name: 'a' },
+                { id: 3, name: 'a' },
+            ]);
+            expect(ArrayOfObjects.duplicatedElements([
+                { id: 1, name: 'a' },
+                { id: 2, name: 'b' },
+                { id: 3, name: 'a' },
+                { id: 4, name: 'a' },
+                { id: 5, name: 'c' },
+                { id: 6, name: 'b' },
+            ], 'name')).toEqual([
+                { id: 1, name: 'a' },
+                { id: 3, name: 'a' },
+                { id: 4, name: 'a' },
+                { id: 2, name: 'b' },
+                { id: 6, name: 'b' },
+            ]);
+        });
+
+        it('duplicatedElements', () => {
+            expect(ArrayOfObjects._duplicatedElements(source0, 'name')).toEqual([]);
+            expect(ArrayOfObjects._duplicatedElements(source1, 'age')).toEqual([]);
+            expect(ArrayOfObjects._duplicatedElements(source1, 'name')).toEqual(['b']);
         });
 
     });

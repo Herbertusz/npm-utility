@@ -527,7 +527,7 @@ export const ArrayOfObjects = {
     },
 
     /**
-     * Keresés
+     * Keresés (elsö elemet adja vissza)
      * @param fromArray - bemeneti tömb
      * @param propName - keresés alapja
      * @param propValue - keresett érték
@@ -539,22 +539,41 @@ export const ArrayOfObjects = {
         );
         return result ?? null;
     },
+    
+    /**
+     * Keresés (összes elemet visszaadja)
+     * @param fromArray - bemeneti tömb
+     * @param propName - keresés alapja
+     * @param propValue - keresett érték
+     * @return talált elem
+     */
+    findAll: function<T>(fromArray: T[], propName: keyof T, propValue: T[keyof T]): T[] {
+        const founds: T[] = [];
+        fromArray.forEach(
+            item => {
+                if (item[propName] === propValue) {
+                    founds.push(item);
+                }
+            }
+        );
+        return founds;
+    },
 
     /**
      * Duplikált elemek kiszedése (ahol a megadott property azonos)
-     * @param {array} list - bemeneti tömb
+     * @param {array} fromArray - bemeneti tömb
      * @param {number} propName - duplikálást definiáló property
      * @return {array} létrehozott tömb
      */
-    unique: function<T>(list: T[], propName: keyof T): T[] {
-        return Array.from(new Map(list.map(item => [item[propName], item])).values());
+    unique: function<T>(fromArray: T[], propName: keyof T): T[] {
+        return Array.from(new Map(fromArray.map(item => [item[propName], item])).values());
     },
 
     /**
      * Uniq tetszöleges számú property alapján
-     * @param fromArray - bemeneti tömb
-     * @param props - azonosságot jelölö property-k
-     * @return létrehozott tömb
+     * @param {array} fromArray - bemeneti tömb
+     * @param {array} props - azonosságot jelölö property-k
+     * @return {array} létrehozott tömb
      */
     multiUnique: function<T>(fromArray: T[], ...props: (keyof T)[]): T[] {
         return uniqBy(
@@ -567,12 +586,40 @@ export const ArrayOfObjects = {
     },
 
     /**
+     * Duplikált elemek összeszedése (ahol a megadott property azonos)
+     * @param {array} fromArray - bemeneti tömb
+     * @param {number} propName - duplikálást definiáló property
+     * @return {array} létrehozott tömb
+     */
+    duplicatedElements: function<T>(fromArray: T[], propName: keyof T): T[] {
+        type PropDataType = { index: number, value: T[keyof T] };
+        const duplicates: T[] = [];
+        const props: PropDataType[] = [];
+        const foundIndexes: number[] = [];
+        fromArray.forEach(
+            (item, index) => {
+                const foundIndexData = ArrayOfObjects.find<PropDataType>(props, 'value', item[propName]);
+                if (foundIndexData) {
+                    if (!foundIndexes.includes(foundIndexData.index)) {
+                        foundIndexes.push(foundIndexData.index);
+                        duplicates.push(fromArray[foundIndexData.index]);
+                    }
+                    duplicates.push(item);
+                }
+                props.push({ index, value: item[propName] });
+            }
+        );
+        return duplicates;
+    },
+
+    /**
      * //TODO: kideríteni mit csinál ez a függvény és funkcionálissá alakítani
      * @param list - bemeneti tömb
      * @param propName - azonosságot jelölö property
      * @return duplikált elemek tömbje
+     * @deprecated helyette: ArrayOfObject.duplicatedElements()
      */
-    duplicatedElements: function<T>(fromArray: T[], propName: keyof T): T[keyof T][] {
+    _duplicatedElements: function<T>(fromArray: T[], propName: keyof T): T[keyof T][] {
         const uniqueElements: T[] = [];
         const duplicatedElementProps: T[keyof T][] = [];
 
