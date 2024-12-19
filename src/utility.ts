@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual, isFunction, isString, pick, times, uniqBy } from 'lodash';
+import { cloneDeep, isEqual, isFunction, isString, pick, round, times, uniqBy } from 'lodash';
 
 /**
  * Switch szerkezet funkcionális megfelelője (elsősorban értékadáshoz)
@@ -292,7 +292,7 @@ export enum SortDirection {
  * @return 1 | 0 | -1
  * @example
  *  array.sort(
- *      (a, b) => sortDescriptor(a, b, SortDirection.desc)
+ *      (a, b) => sortDescriptor(order(a), order(b), SortDirection.desc)
  *  );
  */
 export const sortDescriptor = function<T>(a: T, b: T, order: SortDirection = SortDirection.asc): number {
@@ -318,6 +318,17 @@ export const sortDescriptor = function<T>(a: T, b: T, order: SortDirection = Sor
 };
 
 /**
+ * Százalékos érték kiszámítása
+ * @param {number} value - érték
+ * @param {number} of - alap
+ * @param {number} [rounding=1] - kerekítés
+ * @return {number}
+ */
+export const getPercentage = function(value: number, of: number, rounding: number = 1): number {
+    return round((value / of) * 100, rounding);
+};
+
+/**
  * Szám aránytartó átalakítása két skála között
  * @param number - Átalakítandó szám
  * @param fromRange - Jelenlegi skála
@@ -332,6 +343,25 @@ export const ratioRange = function(
     number: number, fromRange: [number, number], toRange: [number, number]
 ): number {
     return (number - fromRange[0]) * (toRange[1] - toRange[0]) / (fromRange[1] - fromRange[0]) + toRange[0];
+};
+
+/**
+ * Két intervalum metszete
+ * @param {array} interval1 - intervallum
+ * @param {array} interval2 - intervallum
+ * @return {array} metszet
+ */
+export const intersectionIntervals = function(
+    interval1: [number, number], interval2: [number, number]
+): [number, number] | null {
+    const start = Math.max(interval1[0], interval2[0]);
+    const end = Math.min(interval1[1], interval2[1]);
+
+    if (start <= end) {
+        return [start, end];
+    } else {
+        return null;
+    }
 };
 
 /**
@@ -378,9 +408,9 @@ export const unionIntervals = function(intervals: [number, number][]): [number, 
  * @param {array} intervals - Intervallumok
  * @return {array}
  * @example
- *  complementIntervals([1, 10], [[3, 5], [6, 8]]) => [[1, 3], [5, 6], [8, 10]]
+ *  complementMultiIntervals([1, 10], [[3, 5], [6, 8]]) => [[1, 3], [5, 6], [8, 10]]
  */
-export const complementIntervals = function(
+export const complementMultiIntervals = function(
     domain: [number, number], intervals: [number, number][]
 ): [number, number][] {
     const complements: [number, number][] = [];
@@ -405,6 +435,32 @@ export const complementIntervals = function(
     );
 
     return complements;
+};
+
+/**
+ * Intervallumok egy adott intervallummal (domain) való metszete
+ * @param {array} domain - Főintervallum
+ * @param {array} intervals - Intervallumok
+ * @return {array}
+ * @example
+ *  intersectionMultiIntervals([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]]) => [[3, 5], [8, 9]]
+ */
+export const intersectionMultiIntervals = function(
+    domain: [number, number], intervals: [number, number][]
+): [number, number][] {
+    const intersections: [number, number][] = [];
+    const mergedIntervals = unionIntervals(intervals);
+
+    mergedIntervals.forEach(
+        (int) => {
+            const currentIntersection = intersectionIntervals(int, domain);
+            if (currentIntersection) {
+                intersections.push(currentIntersection);
+            }
+        }
+    );
+
+    return intersections;
 };
 
 /**
@@ -512,7 +568,7 @@ export const ArrayOfObjects = {
     },
 
     /**
-     * Sorrendezés
+     * Sorrendezés property alapján
      * @param {array} fromArray - bemeneti tömb
      * @param {string} propName - rendezés alapja
      * @param {string} order - rendezés iránya
@@ -522,6 +578,21 @@ export const ArrayOfObjects = {
         return fromArray.sort(
             (item1, item2) => sortDescriptor(
                 item1[propName], item2[propName], order
+            )
+        );
+    },
+    
+    /**
+     * Sorrendezés kiszámított érték alapján
+     * @param {array} fromArray - bemeneti tömb
+     * @param {function} calc - rendezés alapja
+     * @param {string} order - rendezés iránya
+     * @return {array} létrehozott tömb
+     */
+    sortByValue: function<T, U>(fromArray: T[], calc: (value: T) => U, order: SortDirection = SortDirection.asc): T[] {
+        return fromArray.sort(
+            (item1, item2) => sortDescriptor(
+                calc(item1), calc(item2), order
             )
         );
     },
@@ -613,7 +684,8 @@ export const ArrayOfObjects = {
     },
 
     /**
-     * //TODO: kideríteni mit csinál ez a függvény és funkcionálissá alakítani
+     * Duplikált elemek összeszedése (ahol a megadott property azonos)
+     * // TODO: deprecated
      * @param list - bemeneti tömb
      * @param propName - azonosságot jelölö property
      * @return duplikált elemek tömbje
@@ -852,7 +924,38 @@ export const IMG = {
                 .substring(1)
                 .match(/.{2}/g) as string[]
         ).map(x => parseInt(x, 16)) as [number, number, number];
-    }
+    },
+
+    /**
+     * Szín invertálása
+     * @param {string} hex - szín
+     * @param {boolean} bw - viszatérési érték csak fekete vagy fehér lehet
+     * @return {string} invertált szín
+     */
+    invertColor: function(hex: string, bw: boolean): string {
+        if (hex.indexOf('#') === 0) {
+            hex = hex.slice(1);
+        }
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        if (hex.length !== 6) {
+            throw new Error('Invalid HEX color.');
+        }
+        const [r, g, b] = [
+            parseInt(hex.slice(0, 2), 16),
+            parseInt(hex.slice(2, 4), 16),
+            parseInt(hex.slice(4, 6), 16)
+        ];
+        if (bw) {
+            // https://stackoverflow.com/a/3943023/112731
+            return (r * 0.299 + g * 0.587 + b * 0.114) > 150 ? '#000000' : '#FFFFFF';
+        }
+        const rStr = (255 - r).toString(16);
+        const gStr = (255 - g).toString(16);
+        const bStr = (255 - b).toString(16);
+        return '#' + rStr.padStart(2, '0') + gStr.padStart(2, '0') + bStr.padStart(2, '0');
+    }    
 
 };
 
@@ -946,6 +1049,36 @@ export const removeAt = function<T>(array: T[], index: number): T[] {
     const copied = [...array];
     copied.splice(index, 1);
     return copied;
+};
+
+/**
+ * Objektum kulcsainak map-pelése (a mapObject value-ja lesz az új kulcs)
+ * @param {object} raw - eredeti objektum
+ * @param {object} mapObject - új kulcsok
+ * @return {object} map-pelt objektum
+ */
+export const mapper = function<From, To>(raw: From, mapObject: Record<string, string>): To {
+    return Object.entries(mapObject).reduce(
+        (acc: Partial<To>, [key, value]: [string, string]) => ({
+            ...acc,
+            [value]: raw[key as keyof From]
+        }), { }
+    ) as To;
+};
+
+/**
+ * Objektum kulcsainak map-pelése fordított irányba (a mapObject key-e lesz az új kulcs)
+ * @param {object} raw - eredeti objektum
+ * @param {object} mapObject - új kulcsok
+ * @return {object} map-pelt objektum
+ */
+export const reverseMapper = function<From, To>(raw: From, mapObject: Record<string, string>): To {
+    return Object.entries(mapObject).reduce(
+        (acc: Partial<To>, [key, value]: [string, string]) => ({
+            ...acc,
+            [key]: raw[value as keyof From]
+        }), { }
+    ) as To;
 };
 
 /**

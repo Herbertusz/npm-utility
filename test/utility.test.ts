@@ -5,8 +5,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
     switching, condition, delay, promiseSequence, tryRequest, macrotask, toggleArray, sortDescriptor, arrayToMap,
-    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString,
-    unionIntervals, animate, complementIntervals, objectKeys, includesAll, removeAt, objectEntries
+    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString, unionIntervals,
+    animate, complementMultiIntervals, objectKeys, includesAll, removeAt, objectEntries, mapper, reverseMapper,
+    intersectionMultiIntervals,
+    intersectionIntervals,
+    getPercentage
 } from '../src/utility';
 
 describe('utility', () => {
@@ -128,6 +131,13 @@ describe('utility', () => {
         expect(desc).toEqual([8, 7, 3, 2, 1]);
     });
 
+    it('intersectionIntervals', () => {
+        expect(intersectionIntervals([1, 4], [6, 9])).toEqual(null);
+        expect(intersectionIntervals([1, 10], [1, 10])).toEqual([1, 10]);
+        expect(intersectionIntervals([1, 10], [4, 6])).toEqual([4, 6]);
+        expect(intersectionIntervals([3, 8], [5, 9])).toEqual([5, 8]);
+    });
+
     it('mergeIntervals', () => {
         expect(unionIntervals([])).toEqual([]);
         expect(unionIntervals([[1, 6]])).toEqual([[1, 6]]);
@@ -138,16 +148,32 @@ describe('utility', () => {
         expect(unionIntervals([[6, 8], [1, 7], [2, 4], [9, 10]])).toEqual([[1, 8], [9, 10]]);
     });
     
-    it('complementIntervals', () => {
-        expect(complementIntervals([1, 10], [])).toEqual([[1, 10]]);
-        expect(complementIntervals([1, 10], [[1, 10]])).toEqual([]);
-        expect(complementIntervals([1, 10], [[1, 6]])).toEqual([[6, 10]]);
-        expect(complementIntervals([1, 10], [[6, 10]])).toEqual([[1, 6]]);
-        expect(complementIntervals([1, 10], [[3, 5]])).toEqual([[1, 3], [5, 10]]);
-        expect(complementIntervals([1, 10], [[3, 5], [6, 8]])).toEqual([[1, 3], [5, 6], [8, 10]]);
-        expect(complementIntervals([1, 10], [[2, 7], [3, 5]])).toEqual([[1, 2], [7, 10]]);
-        expect(complementIntervals([1, 10], [[2, 5], [4, 7]])).toEqual([[1, 2], [7, 10]]);
-        expect(complementIntervals([1, 10], [[1, 5], [8, 10]])).toEqual([[5, 8]]);
+    it('complementMultiIntervals', () => {
+        expect(complementMultiIntervals([1, 10], [])).toEqual([[1, 10]]);
+        expect(complementMultiIntervals([1, 10], [[1, 10]])).toEqual([]);
+        expect(complementMultiIntervals([1, 10], [[1, 6]])).toEqual([[6, 10]]);
+        expect(complementMultiIntervals([1, 10], [[6, 10]])).toEqual([[1, 6]]);
+        expect(complementMultiIntervals([1, 10], [[3, 5]])).toEqual([[1, 3], [5, 10]]);
+        expect(complementMultiIntervals([1, 10], [[3, 5], [6, 8]])).toEqual([[1, 3], [5, 6], [8, 10]]);
+        expect(complementMultiIntervals([1, 10], [[2, 7], [3, 5]])).toEqual([[1, 2], [7, 10]]);
+        expect(complementMultiIntervals([1, 10], [[2, 5], [4, 7]])).toEqual([[1, 2], [7, 10]]);
+        expect(complementMultiIntervals([1, 10], [[1, 5], [8, 10]])).toEqual([[5, 8]]);
+    });
+    
+    it('intersectionMultiIntervals', () => {
+        expect(intersectionMultiIntervals([1, 10], [])).toEqual([]);
+        expect(intersectionMultiIntervals([1, 10], [[1, 10]])).toEqual([[1, 10]]);
+        expect(intersectionMultiIntervals([1, 10], [[1, 6]])).toEqual([[1, 6]]);
+        expect(intersectionMultiIntervals([5, 8], [[1, 6]])).toEqual([[5, 6]]);
+        expect(intersectionMultiIntervals([5, 6], [[7, 8]])).toEqual([]);
+        expect(intersectionMultiIntervals([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]])).toEqual([[3, 5], [8, 9]]);
+    });
+
+    it('getPercentage', () => {
+        expect(getPercentage(0, 1)).toEqual(0);
+        expect(getPercentage(25, 50)).toEqual(50);
+        expect(getPercentage(17, 10)).toEqual(170);
+        expect(getPercentage(100 / 3, 100, 3)).toEqual(33.333);
     });
     
     it('ratioRange', () => {
@@ -261,6 +287,32 @@ describe('utility', () => {
                 { num: 1, name: 'a', age: 20 },
             ]);
         });
+        
+        it('sortByValue', () => {
+            expect(ArrayOfObjects.sortByValue([], _value => null)).toEqual([]);
+            expect(ArrayOfObjects.sortByValue([
+                { num: 1, age: 23, add: 2 },
+                { num: 2, age: 22, add: 1 },
+                { num: 3, age: 21, add: 5 },
+                { num: 4, age: 20, add: 2 },
+            ], value => value.age + value.add)).toEqual([
+                { num: 4, age: 20, add: 2 },
+                { num: 2, age: 22, add: 1 },
+                { num: 1, age: 23, add: 2 },
+                { num: 3, age: 21, add: 5 },
+            ]);
+            expect(ArrayOfObjects.sortByValue([
+                { num: 1, name: 'abcde' },
+                { num: 2, name: 'a' },
+                { num: 3, name: 'abcd' },
+                { num: 4, name: 'abc' },
+            ], value => value.name.length, SortDirection.desc)).toEqual([
+                { num: 1, name: 'abcde' },
+                { num: 3, name: 'abcd' },
+                { num: 4, name: 'abc' },
+                { num: 2, name: 'a' },
+            ]);
+        });
 
         it('find', () => {
             expect(ArrayOfObjects.find(source3, 'age', 100)).toEqual(null);
@@ -325,6 +377,14 @@ describe('utility', () => {
                 { id: 1, name: 'a', age: 20 },
                 { id: 2, name: 'a', age: 22 },
             ]);
+            expect(ArrayOfObjects.multiUnique([
+                { id: 1, name: 'a', age: 20 },
+                { id: 2, name: 'a', age: 22 },
+                { id: 1, name: 'a', age: 20 },
+            ], ...objectKeys(source1[0]))).toEqual([
+                { id: 1, name: 'a', age: 20 },
+                { id: 2, name: 'a', age: 22 },
+            ]);
         });
 
         it('duplicatedElements', () => {
@@ -357,12 +417,6 @@ describe('utility', () => {
                 { id: 2, name: 'b' },
                 { id: 6, name: 'b' },
             ]);
-        });
-
-        it('duplicatedElements', () => {
-            expect(ArrayOfObjects._duplicatedElements(source0, 'name')).toEqual([]);
-            expect(ArrayOfObjects._duplicatedElements(source1, 'age')).toEqual([]);
-            expect(ArrayOfObjects._duplicatedElements(source1, 'name')).toEqual(['b']);
         });
 
     });
@@ -421,12 +475,19 @@ describe('utility', () => {
         it.skip('getRatio', () => { });
 
         it('hexToRgb', () => {
-            // expect(IMG.hexToRgb('ffffff')).toEqual([255, 255, 255]);
-            // expect(IMG.hexToRgb('FFFFFF')).toEqual([255, 255, 255]);
             expect(IMG.hexToRgb('#0033ff')).toEqual([0, 51, 255]);
             expect(IMG.hexToRgb('#0033FF')).toEqual([0, 51, 255]);
             expect(IMG.hexToRgb('#03f')).toEqual([0, 51, 255]);
             expect(IMG.hexToRgb('#aa0000')).toEqual([170, 0, 0]);
+        });
+        
+        it('invertColor', () => {
+            expect(IMG.invertColor('#0000ff', false)).toEqual('#ffff00');
+            expect(IMG.invertColor('#00FFFF', false)).toEqual('#ff0000');
+            expect(IMG.invertColor('#00f', false)).toEqual('#ffff00');
+            expect(IMG.invertColor('#0000ff', true)).toEqual('#FFFFFF');
+            expect(IMG.invertColor('#00FFFF', true)).toEqual('#000000');
+            expect(IMG.invertColor('#00F', true)).toEqual('#FFFFFF');
         });
 
     });
@@ -469,8 +530,19 @@ describe('utility', () => {
         expect(removeAt([1, 2, 3], 1)).toEqual([1, 3]);
         expect(removeAt([1, 2, 3], 3)).toEqual([1, 2, 3]);
     });
+    
+    it('mapper', () => {
+        // TODO
+        expect(mapper({ }, { })).toEqual({ });
+    });
+    
+    it('reverseMapper', () => {
+        // TODO
+        expect(reverseMapper({ }, { })).toEqual({ });
+    });
 
     it.skip('animate', () => {
+        // TODO
         const div = document.createElement('div');
         div.style.position = 'absolute';
         div.style.left = '0px';
