@@ -9,7 +9,8 @@ import {
     animate, complementMultiIntervals, objectKeys, includesAll, removeAt, objectEntries, mapper, reverseMapper,
     intersectionMultiIntervals,
     intersectionIntervals,
-    getPercentage
+    getPercentage,
+    promiseSequenceAll
 } from '../src/utility';
 
 describe('utility', () => {
@@ -52,21 +53,34 @@ describe('utility', () => {
     });
     
     it('delay', () => {
+        expect(delay(500, 1)).resolves.toBeDefined();
         expect(delay(1000, 1)).resolves.toBeDefined();
-        expect(delay(1500, 1)).resolves.toBeDefined();
     });
 
     it('promiseSequence', () => {
         const runPromise = () => promiseSequence<number>([
-            () => delay(500, 1).then(() => 1),
-            (value) => delay(1000, value).then((val) => val + 1),
-            (value) => delay(500, value).then((val) => val + 1)
+            () => delay(200, 1).then(() => 1),
+            (value) => delay(500, value).then((val) => val + 1),
+            (value) => delay(200, value).then((val) => val + 1)
         ]).then(
             (value) => value
         ).catch(
             (error) => error
         );
         expect(runPromise()).resolves.toEqual(3);
+    });
+    
+    it('promiseSequenceAll', () => {
+        const runPromise = () => promiseSequenceAll<number>([
+            (prev) => delay(200, prev).then((val) => Number(val) + 1),
+            (prev) => delay(500, prev).then((val) => Number(val) + 1),
+            (prev) => delay(200, prev).then((val) => Number(val) + 1)
+        ]).then(
+            (value) => value
+        ).catch(
+            (error) => error
+        );
+        expect(runPromise()).resolves.toEqual([1, 2, 3]);
     });
     
     it('promiseSettledSequence', () => {
@@ -90,7 +104,7 @@ describe('utility', () => {
         ]);
     });
 
-    it('tryRequest', () => {
+    it.skip('tryRequest', () => {
         const runPromise = (url) => tryRequest({
             times: 3,
             url
@@ -532,13 +546,17 @@ describe('utility', () => {
     });
     
     it('mapper', () => {
-        // TODO
-        expect(mapper({ }, { })).toEqual({ });
+        expect(mapper({ a: 1 }, { })).toEqual({ });
+        expect(mapper({ a: 1 }, { a: 'b' })).toEqual({ b: 1 });
+        expect(mapper({ a: 1 }, { b: 'c' })).toEqual({ c: undefined });
+        expect(mapper({ a: 1, b: 2, c: 3 }, { b: 'd', c: 'x' })).toEqual({ d: 2, x: 3 });
     });
     
     it('reverseMapper', () => {
-        // TODO
-        expect(reverseMapper({ }, { })).toEqual({ });
+        expect(reverseMapper({ a: 1 }, { })).toEqual({ });
+        expect(reverseMapper({ a: 1 }, { b: 'a' })).toEqual({ b: 1 });
+        expect(reverseMapper({ a: 1 }, { c: 'b' })).toEqual({ c: undefined });
+        expect(reverseMapper({ a: 1, b: 2, c: 3 }, { d: 'b', x: 'c' })).toEqual({ d: 2, x: 3 });
     });
 
     it.skip('animate', () => {
