@@ -2,7 +2,7 @@
     "name": "@herbertusz/utility",
     "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.12",
+    "version": "0.1.13",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
@@ -16,7 +16,6 @@
     ],
     "exports": {
         ".": {
-            "require": "./dist/utility.cjs",
             "import": "./dist/utility.mjs",
             "types": "./dist/types/utility.d.ts"
         }
@@ -33,20 +32,20 @@
     },
     "devDependencies": {
         "@types/jsdom": "^21.1.1",
-        "@types/lodash": "^4.17.7",
+        "@types/lodash": "^4.17.13",
         "@types/node": "^20.14.11",
         "@typescript-eslint/eslint-plugin": "^7.13.1",
         "@typescript-eslint/parser": "^7.13.1",
-        "@vitest/coverage-v8": "^2.0.3",
+        "@vitest/coverage-v8": "^2.1.8",
         "dts-bundle-generator": "^9.5.1",
         "eslint": "^8.57.0",
-        "happy-dom": "^14.11.1",
-        "lint-staged": "^15.2.7",
+        "happy-dom": "^15.11.7",
+        "lint-staged": "^15.2.11",
         "rimraf": "^6.0.1",
         "ts-node": "^10.9.1",
-        "typescript": "^5.5.3",
-        "vite": "^5.3.1",
-        "vitest": "^2.0.3"
+        "typescript": "^5.7.2",
+        "vite": "^6.0.5",
+        "vitest": "^2.1.8"
     },
     "dependencies": {
         "lodash": "^4.17.21"

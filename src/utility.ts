@@ -150,6 +150,45 @@ export const promiseSequence = function<T>(
 };
 
 /**
+ * Promise-ok szekvenciális lefuttatása
+ * @param {array} factories - promise factory-k tömbje
+ * @return {Promise} visszatérési értékek tömbje
+ * @exampe
+ *  promiseSequenceAll([
+ *      (prev) => { console.info(prev); return delay(1000, 1); },
+ *      (prev) => { console.info(prev); return delay(1000, 2); },
+ *      (prev) => { console.info(prev); return delay(1000, 3); }
+ *  ]).then(
+ *      (values) => {
+ *          console.info('Done', values);
+ *      }
+ *  );
+ */
+export const promiseSequenceAll = function<T>(
+    factories: ((previousValue: T | null) => Promise<T | null>)[]
+): Promise<(T | null)[]> {
+    let result: Promise<T | null> = Promise.resolve(null);
+    const values: (T | null)[] = [];
+    factories.forEach(
+        (factory) => {
+            result = result.then(
+                (currentValue: T | null) => {
+                    values.push(currentValue);
+                    return factory(currentValue);
+                }
+            );
+        }
+    );
+    return result.then(
+        (currentValue: T | null) => {
+            values.shift();
+            values.push(currentValue);
+            return values;
+        }
+    );
+};
+
+/**
  * Promise-ok szekvenciális lefuttatása (Promise.allSettled mintájára)
  * @param factories - promise factory-k tömbje
  * @return visszatérési értékek tömbje
@@ -525,10 +564,10 @@ export const ArrayOfObjects = {
      * @param {string} remainingProp - megmaradó property
      * @return {array} létrehozott tömb
      */
-    take: function<T>(fromArray: T[], remainingProp: keyof T): T[keyof T][] {
+    take: function<T, U = T[keyof T]>(fromArray: T[], remainingProp: keyof T): U[] {
         return fromArray.map(
             (item: T) => item[remainingProp]
-        );
+        ) as U[];
     },
 
     /**
@@ -660,7 +699,7 @@ export const ArrayOfObjects = {
      * Duplikált elemek összeszedése (ahol a megadott property azonos)
      * @param {array} fromArray - bemeneti tömb
      * @param {number} propName - duplikálást definiáló property
-     * @return {array} létrehozott tömb
+     * @return {array} duplikált elemek tömbje
      */
     duplicatedElements: function<T>(fromArray: T[], propName: keyof T): T[] {
         type PropDataType = { index: number, value: T[keyof T] };
@@ -783,6 +822,7 @@ export const SVG = {
      * @param {string} svgDataUrl - kódolt svg
      * @param {number} width - png szélessége
      * @return {Promise<string>} png data url
+     * @async
      */
     dataUrlToPng: function(svgDataUrl: string, width: number): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -858,6 +898,7 @@ export const IMG = {
      * Kép url konvertalása base64-el kódolt képpé
      * @param {string} url - URL
      * @return {Promise<string>} data url
+     * @async
      */
     urlToBase64: function(url: string): Promise<string> {
         return new Promise(
@@ -892,6 +933,7 @@ export const IMG = {
      * Base64-gyel kódolt kép keparánya
      * @param {string} dataUrl - kódolt kép
      * @return {Promise<number>} képarány (w/h)
+     * @async
      */
     getRatio: function(dataUrl: string): Promise<number> {
         return new Promise((resolve, reject) => {
