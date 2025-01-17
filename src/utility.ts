@@ -863,7 +863,7 @@ export const SVG = {
             if (!clonedSvg.getAttribute('xmlns:xlink')) {
                 clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
             }
-            const outerHTML = clonedSvg.outerHTML.replace(/aria-label=".*?"/g, 'aria-label=""');
+            const outerHTML = clonedSvg.outerHTML.replace(/aria-label=".*?"/sg, 'aria-label=""');
             const blob = new Blob([outerHTML], { type: 'image/svg+xml;charset=utf-8' });
             const blobURL = URL.createObjectURL(blob);
 
