@@ -474,7 +474,7 @@ describe('utility', () => {
 
         it('elementToBase64', () => {
             expect(SVG.elementToBase64(SVG.codeToElement('<svg></svg>'))).toEqual(`
-                data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=
             `.trim());
         });
         
