@@ -94,7 +94,7 @@ export const switching = function<T, U>(
  *  }
  * @example
  *  const variable = condition([
- *      [(data >= sector), size],
+ *      [data >= sector, size],
  *      [(sector - data) < size, size - (sector - data)],
  *      [true, 0]
  *  ]);
@@ -288,7 +288,8 @@ export const tryRequest = function({
 
 /**
  * Függvény lefuttatása macrotask-ként
- * @param callback
+ * @param {function} callback
+ * @return {Promise}
  */
 export const macrotask = function<T>(callback: () => T): Promise<T> {
     return new Promise((resolve: (value: T) => void) => {
@@ -357,6 +358,31 @@ export const sortDescriptor = function<T>(a: T, b: T, order: SortDirection = Sor
 };
 
 /**
+ * Sorrendezést definiáló függvény megadott tömb alapján (Array.prototype.sort metódushoz)
+ * @param {*} a - elem
+ * @param {*} b - elem
+ * @param {'asc'|'desc'} [order='asc'] - sorrend iránya
+ * @return 1 | 0 | -1
+ * @example
+ *  array.sort(
+ *      (a, b) => sortDescriptorByList(a, b, list, SortDirection.desc)
+ *  );
+ */
+export const sortDescriptorByList = function<T>(
+    a: T, b: T, list: T[], order: SortDirection = SortDirection.asc
+): number {
+    return condition([
+        [order === SortDirection.asc && list.indexOf(a) > list.indexOf(b), 1],
+        [order === SortDirection.asc && list.indexOf(a) < list.indexOf(b), -1],
+        [order === SortDirection.asc && list.indexOf(a) === list.indexOf(b), 0],
+        [order === SortDirection.desc && list.indexOf(a) > list.indexOf(b), -1],
+        [order === SortDirection.desc && list.indexOf(a) < list.indexOf(b), 1],
+        [order === SortDirection.desc && list.indexOf(a) === list.indexOf(b), 0],
+        [true, 0]
+    ]) as number;
+};
+
+/**
  * Százalékos érték kiszámítása
  * @param {number} value - érték
  * @param {number} of - alap
@@ -385,122 +411,132 @@ export const ratioRange = function(
 };
 
 /**
- * Két intervalum metszete
- * @param {array} interval1 - intervallum
- * @param {array} interval2 - intervallum
- * @return {array} metszet
+ * Számok által meghatározott intervallumok kezelése
  */
-export const intersectionIntervals = function(
-    interval1: [number, number], interval2: [number, number]
-): [number, number] | null {
-    const start = Math.max(interval1[0], interval2[0]);
-    const end = Math.min(interval1[1], interval2[1]);
+export const Interval = {
 
-    if (start <= end) {
-        return [start, end];
-    } else {
-        return null;
-    }
-};
-
-/**
- * Számokkal definiált intervallumok merge-elése
- * @param {array} intervals - Intervallumok
- * @return {array}
- * @example
- *  mergeIntervals([[6, 8], [1, 7], [2, 4], [9, 10]]) => [[1, 8], [9, 10]]
- */
-export const unionIntervals = function(intervals: [number, number][]): [number, number][] {
-    const stack: [number, number][] = [];
-
-    intervals.sort(
-        (a, b) => sortDescriptor(a[0], b[0])
-    );
-
-    intervals.forEach(
-        (interval, i) => {
-            if (i === 0) {
-                stack.push(interval);
-            }
-            else {
-                const top = stack[stack.length - 1];
-                if (top[1] < interval[0]) {
-                    // ha a jelenlegi intervallum nincs átfedésben a stack tetején lévővel
+    /**
+     * Két intervalum metszete
+     * @param {array} interval1 - intervallum
+     * @param {array} interval2 - intervallum
+     * @return {array} metszet
+     * @example
+     *  Interval.intersection([3, 8], [5, 9]) => [5, 8]
+     */
+    intersection: function(
+        interval1: [number, number], interval2: [number, number]
+    ): [number, number] | null {
+        const start = Math.max(interval1[0], interval2[0]);
+        const end = Math.min(interval1[1], interval2[1]);
+    
+        if (start <= end) {
+            return [start, end];
+        } else {
+            return null;
+        }
+    },
+    
+    /**
+     * Számokkal definiált intervallumok merge-elése
+     * @param {array} intervals - Intervallumok
+     * @return {array}
+     * @example
+     *  Interval.union([[6, 8], [1, 7], [2, 4], [9, 10]]) => [[1, 8], [9, 10]]
+     */
+    union: function(intervals: [number, number][]): [number, number][] {
+        const stack: [number, number][] = [];
+    
+        intervals.sort(
+            (a, b) => sortDescriptor(a[0], b[0])
+        );
+    
+        intervals.forEach(
+            (interval, i) => {
+                if (i === 0) {
                     stack.push(interval);
                 }
-                else if (top[1] < interval[1]) {
-                    // ha átfedésben van és a jelenlegi később végződik, akkor módosítsuk a legfelső végét
-                    top[1] = interval[1];
-                    stack.pop();
-                    stack.push(top);
+                else {
+                    const top = stack[stack.length - 1];
+                    if (top[1] < interval[0]) {
+                        // ha a jelenlegi intervallum nincs átfedésben a stack tetején lévővel
+                        stack.push(interval);
+                    }
+                    else if (top[1] < interval[1]) {
+                        // ha átfedésben van és a jelenlegi később végződik, akkor módosítsuk a legfelső végét
+                        top[1] = interval[1];
+                        stack.pop();
+                        stack.push(top);
+                    }
                 }
             }
-        }
-    );
+        );
+    
+        return stack;
+    },
+    
+    /**
+     * Intervallumok komplementere egy adott intervallumon (domain) belül
+     * @param {array} domain - Főintervallum
+     * @param {array} intervals - Intervallumok
+     * @return {array}
+     * @example
+     *  Interval.multiComplement([1, 10], [[3, 5], [6, 8]]) => [[1, 3], [5, 6], [8, 10]]
+     */
+    multiComplement: function(
+        domain: [number, number], intervals: [number, number][]
+    ): [number, number][] {
+        const complements: [number, number][] = [];
+        const mergedIntervals = Interval.union(intervals);
+    
+        times(mergedIntervals.length + 1).forEach(
+            (i) => {
+                let toBePushed: [number, number];
+                if (i === 0) {
+                    toBePushed = [domain[0], mergedIntervals[i]?.[0] ?? domain[1]];
+                }
+                else if (i === mergedIntervals.length) {
+                    toBePushed = [mergedIntervals[i - 1][1], domain[1]];
+                }
+                else {
+                    toBePushed = [mergedIntervals[i - 1][1], mergedIntervals[i][0]];
+                }
+                if (toBePushed[0] < toBePushed[1]) {
+                    complements.push(toBePushed);
+                }
+            }
+        );
+    
+        return complements;
+    },
+    
+    /**
+     * Intervallumok egy adott intervallummal (domain) való metszete
+     * @param {array} domain - Főintervallum
+     * @param {array} intervals - Intervallumok
+     * @return {array}
+     * @example
+     *  Interval.multiIntersection([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]]) => [[3, 5], [8, 9]]
+     */
+    multiIntersection: function(
+        domain: [number, number], intervals: [number, number][]
+    ): [number, number][] {
+        const intersections: [number, number][] = [];
+        const mergedIntervals = Interval.union(intervals);
+    
+        mergedIntervals.forEach(
+            (int) => {
+                const currentIntersection = Interval.intersection(int, domain);
+                if (currentIntersection) {
+                    intersections.push(currentIntersection);
+                }
+            }
+        );
+    
+        return intersections;
+    },
 
-    return stack;
 };
 
-/**
- * Intervallumok komplementere egy adott intervallumon (domain) belül
- * @param {array} domain - Főintervallum
- * @param {array} intervals - Intervallumok
- * @return {array}
- * @example
- *  complementMultiIntervals([1, 10], [[3, 5], [6, 8]]) => [[1, 3], [5, 6], [8, 10]]
- */
-export const complementMultiIntervals = function(
-    domain: [number, number], intervals: [number, number][]
-): [number, number][] {
-    const complements: [number, number][] = [];
-    const mergedIntervals = unionIntervals(intervals);
-
-    times(mergedIntervals.length + 1).forEach(
-        (i) => {
-            let toBePushed: [number, number];
-            if (i === 0) {
-                toBePushed = [domain[0], mergedIntervals[i]?.[0] ?? domain[1]];
-            }
-            else if (i === mergedIntervals.length) {
-                toBePushed = [mergedIntervals[i - 1][1], domain[1]];
-            }
-            else {
-                toBePushed = [mergedIntervals[i - 1][1], mergedIntervals[i][0]];
-            }
-            if (toBePushed[0] < toBePushed[1]) {
-                complements.push(toBePushed);
-            }
-        }
-    );
-
-    return complements;
-};
-
-/**
- * Intervallumok egy adott intervallummal (domain) való metszete
- * @param {array} domain - Főintervallum
- * @param {array} intervals - Intervallumok
- * @return {array}
- * @example
- *  intersectionMultiIntervals([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]]) => [[3, 5], [8, 9]]
- */
-export const intersectionMultiIntervals = function(
-    domain: [number, number], intervals: [number, number][]
-): [number, number][] {
-    const intersections: [number, number][] = [];
-    const mergedIntervals = unionIntervals(intervals);
-
-    mergedIntervals.forEach(
-        (int) => {
-            const currentIntersection = intersectionIntervals(int, domain);
-            if (currentIntersection) {
-                intersections.push(currentIntersection);
-            }
-        }
-    );
-
-    return intersections;
-};
 
 /**
  * Tömb Map-pé alakítása (tömbindex lesz a key)
@@ -680,7 +716,8 @@ export const ArrayOfObjects = {
     },
 
     /**
-     * Uniq tetszöleges számú property alapján
+     * Uniq tetszöleges számú property alapján (ha mind egyezik akkor számít azonosnak két objektum)
+     * // TODO: nézze inkább === operátorral az egyezöséget
      * @param {array} fromArray - bemeneti tömb
      * @param {array} props - azonosságot jelölö property-k
      * @return {array} létrehozott tömb
@@ -744,7 +781,40 @@ export const ArrayOfObjects = {
         }
 
         return duplicatedElementProps;
-    }
+    },
+
+    /**
+     * Helyezés hozzáadása az obkjektumokhoz egy property alapján (másolt tömböt ad vissza)
+     * @param {array} fromArray - bemeneti tömb
+     * @param {string} propName - helyezést meghatározó property
+     * @param {string} plusPropName - helyezést meghatározó property
+     * @return {array} létrehozott tömb
+     */
+    appendPosition: function<T>(
+        fromArray: T[], propName: keyof T, plusPropName: string = 'position'
+    ): (T & { [plusPropName: string]: number })[] {
+        const sortedList = ArrayOfObjects.sort(cloneDeep(fromArray), propName, SortDirection.desc);
+        const itemsWithPos: (T & { [plusPropName: string]: number })[] = [];
+        let position = 1;
+        let tieLength = 1;
+        for (let i = 0; i < sortedList.length; i++) {
+            const item = sortedList[i];
+            if (i > 0) {
+                if (item[propName] < sortedList[i - 1][propName]) {
+                    position += tieLength;
+                    tieLength = 1;
+                }
+                else {
+                    tieLength++;
+                }
+            }
+            itemsWithPos.push({
+                ...item,
+                [plusPropName]: position,
+            });
+        }
+        return itemsWithPos;
+    },
 
 };
 

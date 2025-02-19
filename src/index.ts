@@ -21,6 +21,6 @@ export {
     objectEntries,
     objectKeys,
     removeAt,
-    unionIntervals,
+    Interval,
     animate
 } from './utility';
