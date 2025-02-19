@@ -5,12 +5,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
     switching, condition, delay, promiseSequence, tryRequest, macrotask, toggleArray, sortDescriptor, arrayToMap,
-    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString, unionIntervals,
-    animate, complementMultiIntervals, objectKeys, includesAll, removeAt, objectEntries, mapper, reverseMapper,
-    intersectionMultiIntervals,
-    intersectionIntervals,
-    getPercentage,
-    promiseSequenceAll
+    ArrayOfObjects, SVG, SortDirection, promiseSettledSequence, ratioRange, IMG, FILE, generateString, animate,
+    Interval, objectKeys, includesAll, removeAt, objectEntries, mapper, reverseMapper, getPercentage, promiseSequenceAll
 } from '../src/utility';
 
 describe('utility', () => {
@@ -146,41 +142,41 @@ describe('utility', () => {
     });
 
     it('intersectionIntervals', () => {
-        expect(intersectionIntervals([1, 4], [6, 9])).toEqual(null);
-        expect(intersectionIntervals([1, 10], [1, 10])).toEqual([1, 10]);
-        expect(intersectionIntervals([1, 10], [4, 6])).toEqual([4, 6]);
-        expect(intersectionIntervals([3, 8], [5, 9])).toEqual([5, 8]);
+        expect(Interval.intersection([1, 4], [6, 9])).toEqual(null);
+        expect(Interval.intersection([1, 10], [1, 10])).toEqual([1, 10]);
+        expect(Interval.intersection([1, 10], [4, 6])).toEqual([4, 6]);
+        expect(Interval.intersection([3, 8], [5, 9])).toEqual([5, 8]);
     });
 
     it('mergeIntervals', () => {
-        expect(unionIntervals([])).toEqual([]);
-        expect(unionIntervals([[1, 6]])).toEqual([[1, 6]]);
-        expect(unionIntervals([[2, 2], [4, 4]])).toEqual([[2, 2], [4, 4]]);
-        expect(unionIntervals([[1, 6], [8, 9]])).toEqual([[1, 6], [8, 9]]);
-        expect(unionIntervals([[1, 8], [2, 3]])).toEqual([[1, 8]]);
-        expect(unionIntervals([[1, 5], [4, 8]])).toEqual([[1, 8]]);
-        expect(unionIntervals([[6, 8], [1, 7], [2, 4], [9, 10]])).toEqual([[1, 8], [9, 10]]);
+        expect(Interval.union([])).toEqual([]);
+        expect(Interval.union([[1, 6]])).toEqual([[1, 6]]);
+        expect(Interval.union([[2, 2], [4, 4]])).toEqual([[2, 2], [4, 4]]);
+        expect(Interval.union([[1, 6], [8, 9]])).toEqual([[1, 6], [8, 9]]);
+        expect(Interval.union([[1, 8], [2, 3]])).toEqual([[1, 8]]);
+        expect(Interval.union([[1, 5], [4, 8]])).toEqual([[1, 8]]);
+        expect(Interval.union([[6, 8], [1, 7], [2, 4], [9, 10]])).toEqual([[1, 8], [9, 10]]);
     });
     
     it('complementMultiIntervals', () => {
-        expect(complementMultiIntervals([1, 10], [])).toEqual([[1, 10]]);
-        expect(complementMultiIntervals([1, 10], [[1, 10]])).toEqual([]);
-        expect(complementMultiIntervals([1, 10], [[1, 6]])).toEqual([[6, 10]]);
-        expect(complementMultiIntervals([1, 10], [[6, 10]])).toEqual([[1, 6]]);
-        expect(complementMultiIntervals([1, 10], [[3, 5]])).toEqual([[1, 3], [5, 10]]);
-        expect(complementMultiIntervals([1, 10], [[3, 5], [6, 8]])).toEqual([[1, 3], [5, 6], [8, 10]]);
-        expect(complementMultiIntervals([1, 10], [[2, 7], [3, 5]])).toEqual([[1, 2], [7, 10]]);
-        expect(complementMultiIntervals([1, 10], [[2, 5], [4, 7]])).toEqual([[1, 2], [7, 10]]);
-        expect(complementMultiIntervals([1, 10], [[1, 5], [8, 10]])).toEqual([[5, 8]]);
+        expect(Interval.multiComplement([1, 10], [])).toEqual([[1, 10]]);
+        expect(Interval.multiComplement([1, 10], [[1, 10]])).toEqual([]);
+        expect(Interval.multiComplement([1, 10], [[1, 6]])).toEqual([[6, 10]]);
+        expect(Interval.multiComplement([1, 10], [[6, 10]])).toEqual([[1, 6]]);
+        expect(Interval.multiComplement([1, 10], [[3, 5]])).toEqual([[1, 3], [5, 10]]);
+        expect(Interval.multiComplement([1, 10], [[3, 5], [6, 8]])).toEqual([[1, 3], [5, 6], [8, 10]]);
+        expect(Interval.multiComplement([1, 10], [[2, 7], [3, 5]])).toEqual([[1, 2], [7, 10]]);
+        expect(Interval.multiComplement([1, 10], [[2, 5], [4, 7]])).toEqual([[1, 2], [7, 10]]);
+        expect(Interval.multiComplement([1, 10], [[1, 5], [8, 10]])).toEqual([[5, 8]]);
     });
     
     it('intersectionMultiIntervals', () => {
-        expect(intersectionMultiIntervals([1, 10], [])).toEqual([]);
-        expect(intersectionMultiIntervals([1, 10], [[1, 10]])).toEqual([[1, 10]]);
-        expect(intersectionMultiIntervals([1, 10], [[1, 6]])).toEqual([[1, 6]]);
-        expect(intersectionMultiIntervals([5, 8], [[1, 6]])).toEqual([[5, 6]]);
-        expect(intersectionMultiIntervals([5, 6], [[7, 8]])).toEqual([]);
-        expect(intersectionMultiIntervals([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]])).toEqual([[3, 5], [8, 9]]);
+        expect(Interval.multiIntersection([1, 10], [])).toEqual([]);
+        expect(Interval.multiIntersection([1, 10], [[1, 10]])).toEqual([[1, 10]]);
+        expect(Interval.multiIntersection([1, 10], [[1, 6]])).toEqual([[1, 6]]);
+        expect(Interval.multiIntersection([5, 8], [[1, 6]])).toEqual([[5, 6]]);
+        expect(Interval.multiIntersection([5, 6], [[7, 8]])).toEqual([]);
+        expect(Interval.multiIntersection([3, 10], [[1, 5], [1, 4], [8, 9], [12, 15]])).toEqual([[3, 5], [8, 9]]);
     });
 
     it('getPercentage', () => {
@@ -433,6 +429,39 @@ describe('utility', () => {
             ]);
         });
 
+        it('appendPosition', () => {
+            expect(ArrayOfObjects.appendPosition(source0, 'rank')).toEqual([]);
+            expect(ArrayOfObjects.appendPosition([
+                { id: 1, rank: 2 },
+                { id: 2, rank: 1 },
+                { id: 3, rank: 4 },
+                { id: 4, rank: 3 },
+            ], 'rank', 'pos')).toEqual([
+                { id: 3, rank: 4, pos: 1 },
+                { id: 4, rank: 3, pos: 2 },
+                { id: 1, rank: 2, pos: 3 },
+                { id: 2, rank: 1, pos: 4 },
+            ]);
+            expect(ArrayOfObjects.appendPosition([
+                { id: 1, rank: 3 },
+                { id: 2, rank: 3 },
+                { id: 3, rank: 1 },
+                { id: 4, rank: 5 },
+                { id: 5, rank: 2 },
+                { id: 6, rank: 4 },
+                { id: 7, rank: 3 },
+                { id: 8, rank: 5 },
+            ], 'rank')).toEqual([
+                { id: 4, rank: 5, position: 1 },
+                { id: 8, rank: 5, position: 1 },
+                { id: 6, rank: 4, position: 3 },
+                { id: 1, rank: 3, position: 4 },
+                { id: 2, rank: 3, position: 4 },
+                { id: 7, rank: 3, position: 4 },
+                { id: 5, rank: 2, position: 7 },
+                { id: 3, rank: 1, position: 8 },
+            ]);
+        });
     });
 
     describe('SVG', () => {
