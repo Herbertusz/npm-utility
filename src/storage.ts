@@ -4,41 +4,33 @@
 
 type Data<T> = Record<string, T>;
 
-const parse = function(data: string | null): unknown {
+export const JSONparse = function(data: string | null): unknown {
     try {
         return JSON.parse(data as string);
     }
-    catch (error) {
-        return null;
+    catch (_error) {
+        return { };
     }
 };
 
-/**
- * 
- * @example
- *  storage.session.set('value', 'sample');
- *  const value = storage.session.get('value') ?? '';
- *  storage.local.set('value', '123');
- *  const value = Number(storage.local.get('value') ?? 0);
- */
 export const storage = {
 
     session: {
         get: function(key: string): unknown {
-            return parse(sessionStorage.getItem(key));
+            return JSONparse(sessionStorage.getItem(key));
         },
         set: function(key: string, value: unknown): void {
             sessionStorage.setItem(key, JSON.stringify(value));
-        }
+        },
     },
 
     local: {
         get: function(key: string): unknown {
-            return parse(localStorage.getItem(key));
+            return JSONparse(localStorage.getItem(key));
         },
         set: function(key: string, value: unknown): void {
             localStorage.setItem(key, JSON.stringify(value));
-        }
+        },
     }
 
 };
@@ -71,7 +63,7 @@ export const Cache = function(
             try {
                 storage[type].set(pool, {
                     ...storage[type].get(pool) as Data<unknown>,
-                    [prop]: value
+                    [prop]: value,
                 });
             }
             catch(error) {
@@ -87,7 +79,7 @@ export const Cache = function(
             return {
                 value: currentPool?.[prop as keyof typeof currentPool],
                 enumerable: true,
-                configurable: true
+                configurable: true,
             };
         }
         // TODO: has, deleteProperty, defineProperty trap megvalósátása
@@ -111,19 +103,15 @@ export const Cache = function(
  */
 export const DB = {
 
-    createSchema: function(dbName: string, version: number, stores: { storeName: string, keyPath: string }[]): Promise<IDBDatabase> {
+    createStore: function(storeName: string, keyPath: string = 'id'): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const openRequest = indexedDB.open(dbName, version);
+            const openRequest = indexedDB.open('nucleus_scouting', 1);
 
             openRequest.onupgradeneeded = function(): void {
                 const db = openRequest.result;
-                stores.forEach(
-                    ({ storeName, keyPath }) => {
-                        if (!db.objectStoreNames.contains(storeName)) {
-                            db.createObjectStore(storeName, { keyPath });
-                        }
-                    }
-                );
+                if (!db.objectStoreNames.contains(storeName)) {
+                    db.createObjectStore(storeName, { keyPath });
+                }
             };
 
             openRequest.onsuccess = function(): void {
@@ -133,35 +121,25 @@ export const DB = {
 
             openRequest.onerror = function(): void {
                 console.error('Error', openRequest.error);
-                reject({ type: 'storage', message: 'create schema error', data: openRequest.error });
-            };
-        });
-    },
-
-    openStore: function(dbName: string, storeName: string): Promise<IDBObjectStore> {
-        return new Promise((resolve, reject) => {
-            const openRequest = indexedDB.open(dbName);
-
-            openRequest.onsuccess = function(): void {
-                const db = openRequest.result;
-                const transaction = db.transaction(storeName, 'readwrite');
-
-                resolve(transaction.objectStore(storeName));
-
-                transaction.onabort = function(): void {
-                    console.error('Error', transaction.error);
-                    reject({ type: 'storage', message: 'transaction error', data: transaction.error });
-                };
-            };
-
-            openRequest.onerror = function(): void {
-                console.error('Error', openRequest.error);
                 reject({ type: 'storage', message: 'open request error', data: openRequest.error });
             };
         });
     },
 
-    get: function<T = unknown>(store: IDBObjectStore, key: string): Promise<{ [key: string]: string | T }> {
+    createTransaction: function(db: IDBDatabase, storeName: string): Promise<IDBObjectStore> {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+
+            resolve(transaction.objectStore(storeName));
+
+            transaction.onabort = function(): void {
+                console.error('Error', transaction.error);
+                reject({ type: 'storage', message: 'transaction error', data: transaction.error });
+            };
+        });
+    },
+
+    get: function(store: IDBObjectStore, key: string): Promise<unknown> {
         return new Promise((resolve, reject) => {
             const request = store.get(key);
 
@@ -176,7 +154,7 @@ export const DB = {
         });
     },
 
-    add: function<T = unknown>(store: IDBObjectStore, data: { [key: string]: string | T }): Promise<IDBValidKey> {
+    add: function(store: IDBObjectStore, data: Data<unknown>): Promise<IDBValidKey> {
         return new Promise((resolve, reject) => {
             const request = store.add(data);
 
@@ -197,7 +175,7 @@ export const DB = {
         });
     },
 
-    put: function<T = unknown>(store: IDBObjectStore, data: { [key: string]: string | T }): Promise<IDBValidKey> {
+    put: function(store: IDBObjectStore, data: Data<unknown>): Promise<IDBValidKey> {
         return new Promise((resolve, reject) => {
             const request = store.put(data);
 
@@ -240,6 +218,6 @@ export const DB = {
                 reject({ type: 'storage', message: 'clear request error', data: request.error });
             };
         });
-    }
+    },
 
 };

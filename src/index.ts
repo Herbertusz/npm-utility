@@ -4,10 +4,12 @@ export {
     delay,
     promiseSequence,
     promiseSettledSequence,
+    promiseSequenceAll,
     tryRequest,
     macrotask,
     toggleArray,
     sortDescriptor,
+    sortDescriptorByList,
     getPercentage,
     ratioRange,
     arrayToMap,
@@ -22,5 +24,7 @@ export {
     objectKeys,
     removeAt,
     Interval,
-    animate
+    mapper,
+    reverseMapper,
+    animate,
 } from './utility';
