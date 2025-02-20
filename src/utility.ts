@@ -1077,20 +1077,17 @@ export const IMG = {
 export const FILE = {
 
     /**
-     *
-     * @param {string} base64
-     * @return {Blob}
+     * Base64-el kódolt fájl binárissá alakítása
+     * @param {string} base64 - base64-el kódolt string
+     * @param {string} contentType - fájl mime típusa
+     * @return {Blob} bináris kód
      */
-    base64ToBlob: function(base64: string): Blob {
-        const binaryString = Buffer.from(base64, 'base64');
-        const binaryLen = binaryString.length;
-        const bytes = new Uint8Array(binaryLen);
-        [...binaryString].forEach(
-            (_char, i) => {
-                bytes[i] = binaryString[i];
-            }
+    base64ToBlob: function(base64: string, contentType: string = 'application/octet-stream'): Promise<Blob> {
+        return fetch(
+            `data:${contentType};base64,${base64}`
+        ).then(
+            res => res.blob()
         );
-        return new Blob([bytes]);
     },
 
     /**

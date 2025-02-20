@@ -2,7 +2,7 @@
     "name": "@herbertusz/utility",
     "description": "Utility functions",
     "author": "Horváth Norbert (https://github.com/Herbertusz)",
-    "version": "0.1.16",
+    "version": "0.1.17",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Herbertusz/npm-utility.git"
