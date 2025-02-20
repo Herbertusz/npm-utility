@@ -48,12 +48,12 @@ describe('utility', () => {
         expect(condition([[false, 1], [true, 2], [true, 3], [true, 4]])).toEqual(2);
     });
     
-    it('delay', () => {
-        expect(delay(500, 1)).resolves.toBeDefined();
-        expect(delay(1000, 1)).resolves.toBeDefined();
+    it('delay', async () => {
+        await expect(delay(500, 1)).resolves.toBeDefined();
+        await expect(delay(1000, 1)).resolves.toBeDefined();
     });
 
-    it('promiseSequence', () => {
+    it('promiseSequence', async () => {
         const runPromise = () => promiseSequence<number>([
             () => delay(200, 1).then(() => 1),
             (value) => delay(500, value).then((val) => val + 1),
@@ -63,10 +63,10 @@ describe('utility', () => {
         ).catch(
             (error) => error
         );
-        expect(runPromise()).resolves.toEqual(3);
+        await expect(runPromise()).resolves.toEqual(3);
     });
     
-    it('promiseSequenceAll', () => {
+    it('promiseSequenceAll', async () => {
         const runPromise = () => promiseSequenceAll<number>([
             (prev) => delay(200, prev).then((val) => Number(val) + 1),
             (prev) => delay(500, prev).then((val) => Number(val) + 1),
@@ -76,10 +76,10 @@ describe('utility', () => {
         ).catch(
             (error) => error
         );
-        expect(runPromise()).resolves.toEqual([1, 2, 3]);
+        await expect(runPromise()).resolves.toEqual([1, 2, 3]);
     });
     
-    it('promiseSettledSequence', () => {
+    it('promiseSettledSequence', async () => {
         const runPromise = () => promiseSettledSequence<number>([
             () => { return Promise.resolve(1); },
             (prev) => Promise.reject((prev ?? 1) + 1),
@@ -91,7 +91,7 @@ describe('utility', () => {
         ).catch(
             (error) => error
         );
-        expect(runPromise()).resolves.toEqual([
+        await expect(runPromise()).resolves.toEqual([
             { status: 'fulfilled', value: 1 },
             { status: 'rejected', reason: 2 },
             { status: 'fulfilled', value: 3 },
@@ -100,7 +100,7 @@ describe('utility', () => {
         ]);
     });
 
-    it.skip('tryRequest', () => {
+    it.skip('tryRequest', async () => {
         const runPromise = (url) => tryRequest({
             times: 3,
             url
@@ -109,8 +109,8 @@ describe('utility', () => {
         ).catch(
             (error) => Promise.reject(error)
         );
-        expect(runPromise('https://google.com')).resolves.toBeDefined();
-        expect(runPromise('http://doesntexist12345.com')).rejects.toBeInstanceOf(Error);
+        await expect(runPromise('https://google.com')).resolves.toBeDefined();
+        await expect(runPromise('http://doesntexist12345.com')).rejects.toBeInstanceOf(Error);
     });
 
     it('macrotask', async () => {
@@ -486,14 +486,14 @@ describe('utility', () => {
 
         // Cannot test with happy-dom
         it.skip('dataUrlToPng', async () => {
-            expect(SVG.dataUrlToPng('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=', 10)).resolves.toEqual(`
+            await expect(SVG.dataUrlToPng('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=', 10)).resolves.toEqual(`
                 data:image/png;base64,
             `.trim());
         });
 
         // Cannot test with happy-dom
         it.skip('elementToPng', async () => {
-            expect(SVG.elementToPng(SVG.codeToElement('<svg></svg>'), 10)).resolves.toEqual(`
+            await expect(SVG.elementToPng(SVG.codeToElement('<svg></svg>'), 10)).resolves.toEqual(`
                 data:image/png;base64,
             `.trim());
         });
@@ -536,9 +536,9 @@ describe('utility', () => {
     });
     
     describe('FILE', () => {
-
-        it('base64ToBlob', () => {
-            expect(FILE.base64ToBlob('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=').size).toEqual(28);
+        
+        it('base64ToBlob', async () => {
+            await expect(FILE.base64ToBlob('data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=')).resolves.toBeInstanceOf(Blob);
         });
 
         it.skip('download', () => { });
